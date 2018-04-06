@@ -41,8 +41,9 @@ dependencies {
     nativeBinary 'com.github.Vatuu:discord-rpc-binaries:3.1.0'
 }
 
-task extractApi(type: Copy) {
-    print "FILE=" + configurations.nativeBinary.singleFile
+task extractBinaryDependencies(type: Copy) {
     from zipTree(configurations.nativeBinary.singleFile)
     into 'binaries-resources'
 }
+
+compileJava.dependsOn(extractBinaryDependencies)
