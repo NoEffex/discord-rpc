@@ -46,4 +46,15 @@ task extractBinaryDependencies(type: Copy) {
     into 'binaries-resources'
 }
 
+task fullJar(type: Jar) {
+    baseName = 'discord-rpc-jna-embedded'
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it).matching {
+                exclude 'META-INF/'
+            }
+        }
+    }
+}
+
 compileJava.dependsOn(extractBinaryDependencies)
