@@ -1,0 +1,48 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group 'net.arikia.dev'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://jitpack.io/"
+    }
+}
+
+configurations {
+    nativeBinary
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+    }
+}
+
+dependencies {
+    compile 'net.java.dev.jna:jna:4.5.1'
+    nativeBinary 'com.github.Vatuu:discord-rpc-binaries:3.1.0'
+}
+
+task extractApi(type: Copy) {
+    print "FILE=" + configurations.nativeBinary.singleFile
+    from zipTree(configurations.nativeBinary.singleFile)
+    into 'binaries-resources'
+}

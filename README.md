@@ -4,7 +4,7 @@
 
 
 # discord-rpc
-Java Wrapper of the Discord-RPC Library for Discord Rich Presence.
+This is a mostly unmodified fork of the java Wrapper of the Discord-RPC Library for Discord Rich Presence (https://github.com/Vatuu/discord-rpc). It has been stripped of any dependencies that are not absolutely necessary to load the bindings and converted to Gradle. The tests are likely not functional but that was unnecessary for our use-case and is something to keep in mind. Ideally the tests would contain code to load the native libraries in the same way the main module used to and would use a unit testing framework such as JUnit.
 
 Ever wanted to use the Discord Rich Presence API in a Java Application, but then realized that the native version is C++ only?
 Well, worry no more, because Vatuu's Discord RPC is here. A complete wrapper of all functions the native Dynamic Library contains.

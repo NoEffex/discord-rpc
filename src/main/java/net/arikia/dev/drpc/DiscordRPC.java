@@ -2,14 +2,6 @@ package net.arikia.dev.drpc;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * @author Nicolas "Vatuu" Adamoglou
@@ -17,8 +9,6 @@ import java.io.OutputStream;
  */
 
 public final class DiscordRPC{
-
-    static { loadDLL(); }
 
     //DLL-Version for Update Check.
     private static final String DLL_VERSION = "3.1.0";
@@ -116,36 +106,6 @@ public final class DiscordRPC{
      */
     public static void discordRespond(String userId, DiscordReply reply){
         DLL.INSTANCE.Discord_Respond(userId, reply.reply);
-    }
-
-    //Load DLL depending on the user's architecture.
-    private static void loadDLL(){
-        String name = System.mapLibraryName("discord-rpc");
-        String finalPath = "";
-        String tempPath = "";
-
-        if(SystemUtils.IS_OS_WINDOWS){
-            boolean is64bit = System.getProperty("sun.arch.data.model").equals("64");
-            finalPath = is64bit ? "/win-x64/discord-rpc.dll" : "win-x86/discord-rpc.dll";
-            tempPath = System.getenv("TEMP") + "/discord-rpc.jar/discord-rpc.dll";
-        }else if(SystemUtils.IS_OS_LINUX) {
-            finalPath = "/linux/discord-rpc.so";
-            tempPath = System.getenv("TMPDIR") + "/discord-rpc.jar/discord-rpc.so";
-        }else if(SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX){
-            finalPath = "/osx/discord-rpc.dylib";
-            tempPath = System.getenv("TMPDIR") + "/discord-rpc/discord-rpc.dylib";
-        }
-
-        File f = new File(tempPath);
-
-        try(InputStream in = DiscordRPC.class.getResourceAsStream(finalPath); OutputStream out = FileUtils.openOutputStream(f)){
-            IOUtils.copy(in, out);
-            FileUtils.forceDeleteOnExit(f);
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
-        System.load(f.getAbsolutePath());
     }
 
     //JNA Interface
