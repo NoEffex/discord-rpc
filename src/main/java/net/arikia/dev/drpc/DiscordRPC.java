@@ -12,6 +12,22 @@ public final class DiscordRPC{
 
     //DLL-Version for Update Check.
     private static final String DLL_VERSION = "3.1.0";
+    private static DLL INSTANCE = null;
+    
+    private static DLL instance() {
+        if (INSTANCE == null) {
+            INSTANCE = (DLL) Native.loadLibrary("discord-rpc", DLL.class);
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Method to initialize the JNA lib if different from discord-rpc
+     * @param libraryName Library name (e.g. discord-rpc64.dll)
+     */
+    public static void nativeInitialize(String libraryName){
+        INSTANCE = (DLL) Native.loadLibrary(libraryName, DLL.class);
+    }
 
     /**
      * Method to initialize the Discord-RPC.
@@ -20,7 +36,7 @@ public final class DiscordRPC{
      * @param autoRegister  AutoRegister
      */
     public static void discordInitialize(String applicationId, DiscordEventHandlers handlers, boolean autoRegister){
-        DLL.INSTANCE.Discord_Initialize(applicationId, handlers, autoRegister ? 1 : 0, null);
+        instance().Discord_Initialize(applicationId, handlers, autoRegister ? 1 : 0, null);
     }
 
     /**
@@ -31,7 +47,7 @@ public final class DiscordRPC{
      * @param command Launch Command of the application/game.
      */
     public static void discordRegister(String applicationId, String command){
-        DLL.INSTANCE.Discord_Register(applicationId, command);
+        instance().Discord_Register(applicationId, command);
     }
 
     /**
@@ -43,7 +59,7 @@ public final class DiscordRPC{
      * @param steamId       SteamAppID
      */
     public static void discordInitialize(String applicationId, DiscordEventHandlers handlers, boolean autoRegister, String steamId){
-        DLL.INSTANCE.Discord_Initialize(applicationId, handlers, autoRegister ? 1 : 0, steamId);
+        instance().Discord_Initialize(applicationId, handlers, autoRegister ? 1 : 0, steamId);
     }
 
     /**
@@ -54,7 +70,7 @@ public final class DiscordRPC{
      * @param steamId SteamID of the application/game.
      */
     public static void discordRegisterSteam(String applicationId, String steamId){
-        DLL.INSTANCE.Discord_RegisterSteamGame(applicationId, steamId);
+        instance().Discord_RegisterSteamGame(applicationId, steamId);
     }
 
     /**
@@ -63,14 +79,14 @@ public final class DiscordRPC{
      * @param handlers DiscordEventHandler object with updated callbacks.
      */
     public static void discordUpdateEventHandlers(DiscordEventHandlers handlers){
-        DLL.INSTANCE.Discord_UpdateHandlers(handlers);
+        instance().Discord_UpdateHandlers(handlers);
     }
 
     /**
      * Method to shutdown the Discord-RPC from within the application.
      */
     public static void discordShutdown(){
-        DLL.INSTANCE.Discord_Shutdown();
+        instance().Discord_Shutdown();
     }
 
     /**
@@ -78,7 +94,7 @@ public final class DiscordRPC{
      * Must be called periodically.
      */
     public static void discordRunCallbacks(){
-        DLL.INSTANCE.Discord_RunCallbacks();
+        instance().Discord_RunCallbacks();
     }
 
     /**
@@ -87,7 +103,7 @@ public final class DiscordRPC{
      *                 @see DiscordRichPresence
      */
     public static void discordUpdatePresence(DiscordRichPresence presence){
-        DLL.INSTANCE.Discord_UpdatePresence(presence);
+        instance().Discord_UpdatePresence(presence);
     }
 
     /**
@@ -95,7 +111,7 @@ public final class DiscordRPC{
      * presence is applied.
      */
     public static void discordClearPresence(){
-        DLL.INSTANCE.Discord_ClearPresence();
+        instance().Discord_ClearPresence();
     }
 
     /**
@@ -105,13 +121,11 @@ public final class DiscordRPC{
      *              @see DiscordReply
      */
     public static void discordRespond(String userId, DiscordReply reply){
-        DLL.INSTANCE.Discord_Respond(userId, reply.reply);
+        instance().Discord_Respond(userId, reply.reply);
     }
 
     //JNA Interface
     private interface DLL extends Library{
-        DLL INSTANCE = (DLL) Native.loadLibrary("discord-rpc", DLL.class);
-
         void Discord_Initialize(String applicationId, DiscordEventHandlers handlers, int autoRegister, String optionalSteamId);
         void Discord_Register(String applicationId, String command);
         void Discord_RegisterSteamGame(String applicationId, String steamId);

@@ -48,6 +48,7 @@ task extractBinaryDependencies(type: Copy) {
 
 task fullJar(type: Jar) {
     baseName = 'discord-rpc-jna-embedded'
+    from sourceSets.main.output
     from {
         configurations.compile.collect {
             it.isDirectory() ? it : zipTree(it).matching {
