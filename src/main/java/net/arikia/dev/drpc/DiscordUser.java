@@ -7,23 +7,15 @@ import java.util.List;
 
 /**
  * @author Nicolas "Vatuu" Adamoglou
- * @version 1.0
+ * @version 1.5.1
  *
- *
+ * Object containing information about a Discord user.
  */
-public class DiscordJoinRequest extends Structure {
-
-    /*
-    typedef struct DiscordJoinRequest {
-        const char* userId;
-        const char* username;
-        const char* avatar;
-    } DiscordJoinRequest;
-    */
+public class DiscordUser extends Structure {
 
     @Override
     public List<String> getFieldOrder(){
-        return Arrays.asList(new String[] {"userId", "username", "discriminator", "avatar"});
+        return Arrays.asList("userId", "username", "discriminator", "avatar");
     }
 
     /**
@@ -39,7 +31,7 @@ public class DiscordJoinRequest extends Structure {
     /**
      * The discriminator of the player asking to join.
      */
-    public int discriminator;
+    public String discriminator;
 
     /**
      * The avatar hash of the player asking to join.

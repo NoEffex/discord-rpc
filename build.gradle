@@ -37,7 +37,7 @@ sourceSets {
 }
 
 dependencies {
-    compile 'net.java.dev.jna:jna:4.5.1'
+    compile group: 'net.java.dev.jna', name: 'jna', version: '4.5.1'
     nativeBinary 'com.github.Vatuu:discord-rpc-binaries:3.1.0'
 }
 
@@ -49,13 +49,6 @@ task extractBinaryDependencies(type: Copy) {
 task fullJar(type: Jar) {
     baseName = 'discord-rpc-jna-embedded'
     from sourceSets.main.output
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it).matching {
-                exclude 'META-INF/'
-            }
-        }
-    }
 }
 
 compileJava.dependsOn(extractBinaryDependencies)

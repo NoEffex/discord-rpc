@@ -3,15 +3,18 @@ package net.arikia.dev.drpc;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 
+import java.io.*;
+
 /**
  * @author Nicolas "Vatuu" Adamoglou
- * @version 1.0
+ * @version 1.5.1
+ *
+ * Java Wrapper of the Discord-RPC Library for Discord Rich Presence.
  */
+public final class DiscordRPC {
 
-public final class DiscordRPC{
-
-    //DLL-Version for Update Check.
-    private static final String DLL_VERSION = "3.1.0";
+    //DLL-Version for Update Check (soon).
+    private static final String DLL_VERSION = "3.4.0";
     private static DLL INSTANCE = null;
     
     private static DLL instance() {
@@ -124,8 +127,76 @@ public final class DiscordRPC{
         instance().Discord_Respond(userId, reply.reply);
     }
 
+    //Load DLL depending on the user's architecture.
+    private static void loadDLL(){
+        String name = System.mapLibraryName("discord-rpc");
+        File homeDir;
+        String finalPath;
+        String tempPath;
+        String dir;
+
+        if (OSUtil.isMac()) {
+            homeDir = new File(System.getProperty("user.home") + File.separator + "Library" + File.separator + "Application Support" + File.separator);
+            dir = "darwin";
+            tempPath = homeDir + File.separator + "discord-rpc" + File.separator + name;
+        } else if (OSUtil.isWindows()) {
+            homeDir = new File(System.getenv("TEMP"));
+            boolean is64bit = System.getProperty("sun.arch.data.model").equals("64");
+            dir = (is64bit ? "win-x64" : "win-x86");
+            tempPath = homeDir + File.separator + "discord-rpc" + File.separator + name;
+        } else {
+            homeDir = new File(System.getProperty("user.home"), ".discord-rpc");
+            dir = "linux";
+            tempPath = homeDir + File.separator + name;
+        }
+
+        finalPath = "/" + dir + "/" + name;
+
+        File f = new File(tempPath);
+
+        try(InputStream in = DiscordRPC.class.getResourceAsStream(finalPath); OutputStream out = openOutputStream(f)){
+            copyFile(in, out);
+            f.deleteOnExit();
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+
+        System.load(f.getAbsolutePath());
+    }
+
+    /**
+     * Enum containing reply codes for join request events.
+     * @see net.arikia.dev.drpc.callbacks.JoinRequestCallback
+     */
+    public enum DiscordReply {
+
+        /**
+         * Denies the join request immediately.
+         * Currently behaving the same way like DiscordReply.IGNORE.
+         */
+        NO(0),
+        /**
+         * Accepts the join request, requesting player received a JoinGameCallback.
+         * @see net.arikia.dev.drpc.callbacks.JoinGameCallback
+         */
+        YES(1),
+        /**
+         * Denies the join request by letting it time out(10s).
+         */
+        IGNORE(2);
+
+        /**
+         * Integer reply code send to Discord.
+         */
+        public final int reply;
+
+        DiscordReply(int reply){
+            this.reply = reply;
+        }
+    }
+
     //JNA Interface
-    private interface DLL extends Library{
+    private interface DLL extends Library {
         void Discord_Initialize(String applicationId, DiscordEventHandlers handlers, int autoRegister, String optionalSteamId);
         void Discord_Register(String applicationId, String command);
         void Discord_RegisterSteamGame(String applicationId, String steamId);
@@ -135,5 +206,34 @@ public final class DiscordRPC{
         void Discord_UpdatePresence(DiscordRichPresence presence);
         void Discord_ClearPresence();
         void Discord_Respond(String userId, int reply);
+    }
+
+    //------------------------ Taken from apache commons ------------------------------
+
+    private static void copyFile(final InputStream input, final OutputStream output) throws IOException{
+        byte[] buffer = new byte[1024 * 4];
+        int n;
+        while( -1 != (n = input.read(buffer))){
+            output.write(buffer, 0, n);
+        }
+    }
+
+    private static FileOutputStream openOutputStream(final File file) throws IOException {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                throw new IOException("File '" + file + "' exists but is a directory");
+            }
+            if (!file.canWrite()) {
+                throw new IOException("File '" + file + "' cannot be written to");
+            }
+        } else {
+            final File parent = file.getParentFile();
+            if (parent != null) {
+                if (!parent.mkdirs() && !parent.isDirectory()) {
+                    throw new IOException("Directory '" + parent + "' could not be created");
+                }
+            }
+        }
+        return new FileOutputStream(file);
     }
 }

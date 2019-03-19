@@ -1,7 +1,6 @@
-![Logo](https://github.com/vatuu/discord-rpc/raw/master/rpc.png "Java Discord RPC")
+<img src="https://raw.githubusercontent.com/vatuu/discord-rpc/master/rpc.png" align="right" height="256" width="256"/>
 
 [![jitpack](https://jitpack.io/v/Vatuu/discord-rpc.svg)](https://jitpack.io/#Vatuu/discord-rpc) [![Build Status](https://travis-ci.org/Vatuu/discord-rpc.svg?branch=master)](https://travis-ci.org/Vatuu/discord-rpc) 
-
 
 # discord-rpc
 This is a mostly unmodified fork of the java Wrapper of the Discord-RPC Library for Discord Rich Presence (https://github.com/Vatuu/discord-rpc). It has been stripped of any dependencies that are not absolutely necessary to load the bindings and converted to Gradle. The tests are likely not functional but that was unnecessary for our use-case and is something to keep in mind. Ideally the tests would contain code to load the native libraries in the same way the main module used to and would use a unit testing framework such as JUnit.
@@ -14,7 +13,7 @@ Set advanced pieces of information about your game in the players' profile, when
 
 The so-called Rich Presence contains the following fields for you to fill in:
 
-- State: The general state the current play-session is in (Waiting, Playing, Watching some Leaderboards, whatever).
+- State: The general state the current play-session is in (Waiting, Playing, Watching some leaderboards, etc).
 - Details: Details to the current play-session, like the location, or current score.
 - Timestamps: Show how long the current game-session will go, or how long the player is already playing, up to you.
 - Images: One big cubic, and one smaller round images with a custom tooltip text, to show some more details.
@@ -28,14 +27,15 @@ Using this wrapper is as simple as it can be, with barely any difference of the 
 ### Step 0
   Download one of the releases or download the sources to build your own release. Then, simply add and include it in your project.
   
-  Currently supported OS include ``Windows x86``, ``Windows x64``, ``macOS/OSX`` and ``Unix x64``.
+  Currently supported OS include ``Windows x86``, ``Windows x64`` and ``Unix x64``. OSX and macOS support is currently broken,
+  although we're working hard on getting it to work again.
 
 ### Step 1
 Initialize the Discord RPC when your Application starts up. The Library is mostly static, so there is no need to create an Instance.
 The ``DiscordRPC.initialize();`` method takes 3 arguments to start.
 - ``Client ID`` is the ID of your Discord Application.
 - ``Handler`` is an instance of a DiscordEventHandler-Object. Callbacks to HandlerClasses are registered in there.
-- ``AutoRegister``doesn't really matter right now and is always ``true``.
+- ``AutoRegister``does not really matter right now and is always ``true``.
 - If your application is a Steam Application, the Initialize Methods takes another String of your Steam App ID.
   
 The Event Handler contains instances of the classes that handle Callbacks of the DiscordRPC. These classes have to implement
@@ -57,9 +57,9 @@ public static class ReadyEvent implements ReadyCallback{
   
 public class MainClass{
   public void startup(){
-    DiscordEventHandler handler = new DiscordEventHandler();
-    handler.ready = new ReadyEvent();
-    ...
+    DiscordEventHandlers handlers = new DiscordEventHandler.Build().setReadyEventHandler((user) -> {
+        System.out.println("Welcome " + user.username + "#" + user.discriminator + "!");
+    }).build();
   }
 }
 ```
@@ -70,13 +70,14 @@ simply pass an empty DiscordEventHandler Object.*
 To summarize:
 ```java 
 public void startup(){
-  DiscordEventHandler handler = new DiscordEventHandler();
-  handler.ready = new ReadyEvent();
+  DiscordEventHandlers handlers = new DiscordEventHandler.Build().setReadyEventHandler((user) -> {
+      System.out.println("Welcome " + user.username + "#" + user.discriminator + "!");
+  }).build();
   DiscordRPC.initialize("1234567890", handler, true);
 }
 ```
   
-This would result in the message "Discord's ready!" being printed out in the console after the connection to Discord has been established.
+This would result in the message "Welcome User#1234!" being printed out in the console after the connection to Discord has been established, and fitted with the users username and discriminator.
   
 ### Step 2
 To allow callbacks to be fired, you have to periodically call the method ``DiscordRPC.runCallbacks();``. Otherwise, no callbacks will be passed
@@ -87,22 +88,17 @@ to the application.
 ## Updating the Presence
  
 To update the Rich Presence of a player, a ``DiscordRichPresence`` Object is required. There are created in the same way as the
-EventHandler is created:
+EventHandler is created, by using a Builder:
 ```java
 public void createNewPresence(){
-  DiscordRichPresence rich = new DiscordRichPresence();
-  rich.details = "These are some details.";
-  rich.state = "This is the current state.";
+  DiscordRichPresence rich = new DiscordRichPresence.Builder("This is the current state.").setDetails("These are some details.").build();
 }
 ```
 After the Object has been created, it simply has to be passed to the DiscordRPC with the methods ``DiscordRPC.updatePresence(DiscordRichPresence);``
 
 ```java
 public void createNewPresence(){
-  DiscordRichPresence rich = new DiscordRichPresence();
-  rich.details = "These are some details.";
-  rich.state = "This is the current state.";
-  
+  DiscordRichPresence rich = new DiscordRichPresence.Builder("This is the current state.").setDetails("These are some details.").build();
   DiscordRPC.updatePresence(rich);
 }
 ```
@@ -122,7 +118,7 @@ The method ``DiscordRPC.discordRespond(String userId, DiscordReply reply);`` han
 When a player requests to join a game, the ``JoinRequestCallback`` is called, which should be used to process the request. That request contains the Username, UserID and
 the avatar of that user transformed into a SHA-1 hash.
 
-***Important Note:*** **To let a application use the Join and Spectate Feature, the application has to be greenlit by the Discord Developers.
+***Important Note:*** **To let a application use the Spectate Feature, the application has to be greenlit by the Discord Developers.
 Otherwise, only certain users added to the Application will be able to use these features.**
 
 For further information regarding joining, spectating and getting greenlit, please visit [THIS PAGE](https://discordapp.com/developers/docs/rich-presence/how-to#joining "Discord Developer Docs").
@@ -131,14 +127,14 @@ For further information regarding joining, spectating and getting greenlit, plea
 
 ## The Example Application
 Contained in this repository is a .JAR file called ``RPCTest.jar``. This simple command line application can be used to test the Rich Presence
-for yourself! Simply add the Application named "Derp" to your Discord Games, and it will be recognized. Since Discord only detects games that have an active window, I discourage you to close the small window called "Derp" that will pop up as soon as you start the RPCTest.
+for yourself! Simply add the Application named "RPCTest" to your Discord Games, and it will be recognized. Since Discord only detects games that have an active window, I discourage you from closing the small window called "Derp" that will pop up as soon as you start the RPCTest.
 
 The RPCTest has only two commands:
   - ``test`` will increase the "score" value in the details of your presence.
-  - ``shutdown`` is self-explainatory.
+  - ``shutdown`` is self-explanatory.
  
  -----------------------------------------------------------------------------------------------------------------------------------------------------------------
- More questions? I recomment checking the official [Discord Developer Docs](https://discordapp.com/developers/docs/rich-presence/ "Discord Developer Docs").
+ More questions? I recommend checking the official [Discord Developer Docs](https://discordapp.com/developers/docs/rich-presence/ "Discord Developer Docs").
  
  **Best regards,**
 Vatuu   
